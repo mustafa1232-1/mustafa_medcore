@@ -1,15 +1,25 @@
 // backend/src/modules/auth/auth.routes.js
 const express = require('express');
+const path = require('path');
+
 const router = express.Router();
 
-const validators = require('./auth.validators'); // ✅ خليه require كامل
-const service = require('./auth.service');
-
-// 🔎 DEBUG: تأكيد تحميل الملف
+const validatorsPath = path.join(__dirname, 'auth.validators.js');
 console.log('✅ auth.routes loaded');
+console.log('✅ __dirname:', __dirname);
+console.log('✅ validatorsPath:', validatorsPath);
 
-// 🔎 DEBUG: تأكد أن الـ validators فعلاً محملة
+let validators;
+try {
+  validators = require('./auth.validators');
+  console.log('✅ validators loaded OK');
+} catch (e) {
+  console.log('❌ validators require FAILED:', e.message);
+  throw e;
+}
+
 console.log('✅ auth.validators keys:', Object.keys(validators || {}));
+
 
 const {
   registerOrganizationSchema,
