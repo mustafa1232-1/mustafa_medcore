@@ -1,0 +1,120 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum OrganizationType {
+  HOSPITAL
+  PHARMACY
+  LAB
+  STORE
+}
+
+enum LanguageCode {
+  AR
+  EN
+}
+
+enum UserRole {
+  OWNER
+  ADMIN
+  STAFF
+}
+
+model Organization {
+  id                  String            @id @default(cuid())
+  name                String
+  type                OrganizationType
+  defaultLanguage     LanguageCode      @default(EN)
+  baseCurrency        String            @default("IQD")
+  supportedCurrencies Json              @default("[]")
+  timezone            String            @default("Asia/Baghdad")
+
+  isActive            Boolean           @default(true)
+
+  createdAt           DateTime          @default(now())
+  updatedAt           DateTime          @updatedAt
+
+  users               User[]
+  auditLogs           AuditLog[]
+
+  @@index([type])
+  @@index([isActive])
+}
+
+model User {
+  id              String       @id @default(cuid())
+
+  organizationId  String
+  organization    Organization @relation(fields: [organizationId], references: [id], onDelete: Restrict)
+
+  fullName        String
+  email           String?
+  phone           String?
+  passwordHash    String
+  role            UserRole     @default(STAFF)
+
+  // verification-ready (off for now)
+  emailVerifiedAt DateTime?
+  phoneVerifiedAt DateTime?
+
+  isActive        Boolean      @default(true)
+
+  createdAt       DateTime     @default(now())
+  updatedAt       DateTime     @updatedAt
+
+  refreshTokens   RefreshToken[]
+  auditLogs       AuditLog[]   @relation("AuditLogActor")
+
+  // uniqueness strictly داخل نفس المنشأة (Tenant Isolation)
+  @@unique([organizationId, email])
+  @@unique([organizationId, phone])
+
+  @@index([organizationId])
+  @@index([role])
+  @@index([isActive])
+}
+
+model RefreshToken {
+  id            String   @id @default(cuid())
+  userId        String
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  tokenHash     String
+  expiresAt     DateTime
+  revokedAt     DateTime?
+
+  deviceInfo    String?
+  ip            String?
+
+  createdAt     DateTime @default(now())
+
+  @@index([userId])
+  @@index([expiresAt])
+}
+
+model AuditLog {
+  id             String       @id @default(cuid())
+
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Restrict)
+
+  actorUserId    String?
+  actorUser      User?        @relation("AuditLogActor", fields: [actorUserId], references: [id], onDelete: SetNull)
+
+  action         String
+  entity         String?
+  entityId       String?
+  meta           Json         @default("{}")
+
+  createdAt      DateTime     @default(now())
+
+  @@index([organizationId])
+  @@index([actorUserId])
+  @@index([action])
+  @@index([createdAt])
+}
