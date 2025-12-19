@@ -9,13 +9,14 @@ const pinoHttp = require('pino-http');
 const config = require('./config');
 const logger = require('./utils/logger');
 
-const healthRoutes = require('./routes/health.routes');
+const healthRoutesImport = require('./routes/health.routes');
 const authRoutes = require('./modules/auth/auth.routes');
 const meRoutes = require('./routes/me.routes');
 
-const notFound = require('./middlewares/notfound.middleware');
+const notFoundImport = require('./middlewares/notfound.middleware');
 const errorHandler = require('./middlewares/error.middleware');
-
+const healthRoutes = healthRoutesImport?.default || healthRoutesImport?.router || healthRoutesImport;
+const notFound = notFoundImport?.default || notFoundImport?.notFound || notFoundImport;
 function parseCorsOrigins(origins) {
   const v = String(origins || '*').trim();
   if (v === '*') return '*';
