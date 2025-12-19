@@ -3,16 +3,16 @@ const router = express.Router();
 
 const prisma = require('../db/prisma');
 
-// ✅ استخدم الاسم الصريح الموجود فعلاً
+// ✅ هذا يجب أن يرجع Function
 const auth = require('../middlewares/auth.middleware');
-
+console.log('typeof auth middleware:', typeof auth);
 router.get('/me', auth, async (req, res, next) => {
   try {
     const user = await prisma.user.findFirst({
       where: {
         id: req.auth.userId,
         organizationId: req.auth.orgId,
-        isActive: true
+        isActive: true,
       },
       select: {
         id: true,
@@ -21,8 +21,8 @@ router.get('/me', auth, async (req, res, next) => {
         phone: true,
         role: true,
         organizationId: true,
-        createdAt: true
-      }
+        createdAt: true,
+      },
     });
 
     if (!user) return res.status(404).json({ message: 'User not found' });
@@ -36,8 +36,8 @@ router.get('/me', auth, async (req, res, next) => {
         defaultLanguage: true,
         baseCurrency: true,
         supportedCurrencies: true,
-        timezone: true
-      }
+        timezone: true,
+      },
     });
 
     if (!organization) return res.status(404).json({ message: 'Organization not found' });
