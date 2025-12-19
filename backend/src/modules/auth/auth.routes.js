@@ -1,23 +1,42 @@
+// backend/src/modules/auth/auth.routes.js
 const express = require('express');
 const router = express.Router();
+
+const validators = require('./auth.validators'); // ✅ خليه require كامل
+const service = require('./auth.service');
+
+// 🔎 DEBUG: تأكيد تحميل الملف
+console.log('✅ auth.routes loaded');
+
+// 🔎 DEBUG: تأكد أن الـ validators فعلاً محملة
+console.log('✅ auth.validators keys:', Object.keys(validators || {}));
 
 const {
   registerOrganizationSchema,
   loginSchema,
   refreshSchema,
   logoutSchema
-} = require('./auth.validators');
+} = validators || {};
 
-const service = require('./auth.service');
+// ✅ حماية: إذا أي schema طلعت undefined نوقف فوراً برسالة واضحة
+function assertSchema(name, schema) {
+  if (!schema || typeof schema.parse !== 'function') {
+    throw new Error(
+      `${name} is not a Zod schema. Got: ${Object.prototype.toString.call(schema)} ` +
+      `| validators keys: [${Object.keys(validators || {}).join(', ')}]`
+    );
+  }
+}
 
-// 🔎 DEBUG: تأكيد تحميل الملف (ستراه في Railway logs)
-console.log('✅ auth.routes loaded');
-// ✅ quick ping to confirm mounting
-router.get('/_ping', (req, res) => {
-  return res.json({ ok: true, module: 'auth.routes' });
-});
+assertSchema('registerOrganizationSchema', registerOrganizationSchema);
+assertSchema('loginSchema', loginSchema);
+assertSchema('refreshSchema', refreshSchema);
+assertSchema('logoutSchema', logoutSchema);
 
-// ✅ list registered routes under /auth (debug)
+// ✅ quick ping
+router.get('/_ping', (req, res) => res.json({ ok: true, module: 'auth.routes' }));
+
+// ✅ list registered routes (debug)
 router.get('/_routes', (req, res) => {
   const routes = router.stack
     .filter((l) => l.route)
@@ -25,10 +44,8 @@ router.get('/_routes', (req, res) => {
       path: l.route.path,
       methods: Object.keys(l.route.methods)
     }));
-
   return res.json({ routes });
 });
-
 
 // POST /auth/register-organization
 router.post('/register-organization', async (req, res, next) => {
