@@ -1,18 +1,24 @@
-# Node
+# =========================
+# Node.js
+# =========================
 node_modules/
 npm-debug.log*
 yarn-error.log*
+pnpm-debug.log*
 
-# Env
+# =========================
+# Environment variables
+# =========================
 .env
 
-# Prisma
-prisma/migrations/
-
-# OS
+# =========================
+# OS files
+# =========================
 .DS_Store
 Thumbs.db
 
+# =========================
 # Logs
+# =========================
 logs/
 *.log
