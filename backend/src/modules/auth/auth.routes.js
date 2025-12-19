@@ -12,6 +12,23 @@ const service = require('./auth.service');
 
 // 🔎 DEBUG: تأكيد تحميل الملف (ستراه في Railway logs)
 console.log('✅ auth.routes loaded');
+// ✅ quick ping to confirm mounting
+router.get('/_ping', (req, res) => {
+  return res.json({ ok: true, module: 'auth.routes' });
+});
+
+// ✅ list registered routes under /auth (debug)
+router.get('/_routes', (req, res) => {
+  const routes = router.stack
+    .filter((l) => l.route)
+    .map((l) => ({
+      path: l.route.path,
+      methods: Object.keys(l.route.methods)
+    }));
+
+  return res.json({ routes });
+});
+
 
 // POST /auth/register-organization
 router.post('/register-organization', async (req, res, next) => {
