@@ -3,8 +3,8 @@ const router = express.Router();
 
 const prisma = require('../db/prisma');
 
-// ✅ استخدم الملف الجديد الصريح
-const auth = require('../middlewares/auth');
+// ✅ استخدم الاسم الصريح الموجود فعلاً
+const auth = require('../middlewares/auth.middleware');
 
 router.get('/me', auth, async (req, res, next) => {
   try {
