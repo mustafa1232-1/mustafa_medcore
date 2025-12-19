@@ -2,7 +2,14 @@ const express = require('express');
 const router = express.Router();
 
 const prisma = require('../db/prisma');
-const auth = require('../middlewares/auth.middleware');
+
+const authRaw = require('../middlewares/auth.middleware');
+const auth = authRaw?.default || authRaw?.auth || authRaw; // ✅ supports module.exports = fn OR {auth: fn} OR {default: fn}
+
+if (typeof auth !== 'function') {
+  // Fail fast with a clear error in logs
+  throw new Error(`auth.middleware export must be a function, got: ${Object.prototype.toString.call(auth)}`);
+}
 
 router.get('/me', auth, async (req, res, next) => {
   try {
