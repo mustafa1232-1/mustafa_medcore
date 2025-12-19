@@ -18,6 +18,10 @@ function parseCorsOrigins(origins) {
 
 const app = express();
 
+// ✅ Hard stamp (to verify Railway is running THIS file)
+const BOOT_STAMP = 'BOOT_V3_2025-12-19';
+
+console.log(`✅ ${BOOT_STAMP}`);
 console.log('✅ app.js BOOT v3');
 console.log('typeof authRoutes:', typeof authRoutes);
 
@@ -33,21 +37,31 @@ app.use(rateLimit({
 app.use(express.json({ limit: '1mb' }));
 app.use(pinoHttp({ logger }));
 
-// health on both paths (to detect prefix issues)
+// ✅ health on both paths (detect prefix issues) + stamp
 app.get(['/health', '/api/health'], (req, res) => {
-  res.json({ app: config.app?.name || 'medcore', status: 'ok' });
+  res.json({
+    app: config.app?.name || 'medcore',
+    status: 'ok',
+    boot: BOOT_STAMP
+  });
 });
 
-// app-level ping on both paths (no dependency on auth router)
+// ✅ app-level ping (no dependency on auth router)
 app.get(['/auth/_ping', '/api/auth/_ping'], (req, res) => {
-  res.json({ ok: true, mounted: true });
+  res.json({ ok: true, mounted: true, boot: BOOT_STAMP });
 });
 
-// mount auth router on both paths (temporary)
+// ✅ mount auth router on both paths (temporary)
 app.use('/auth', authRoutes);
 app.use('/api/auth', authRoutes);
 
 // fallback
-app.use((req, res) => res.status(404).json({ message: 'Not Found', path: req.originalUrl }));
+app.use((req, res) => {
+  res.status(404).json({
+    message: 'Not Found',
+    path: req.originalUrl,
+    boot: BOOT_STAMP
+  });
+});
 
 module.exports = app;
