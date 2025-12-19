@@ -18,7 +18,8 @@ function parseCorsOrigins(origins) {
 
 const app = express();
 
-console.log('✅ app.js BOOT v2');
+console.log('✅ app.js BOOT v3');
+console.log('typeof authRoutes:', typeof authRoutes);
 
 app.use(helmet());
 app.use(compression());
@@ -32,13 +33,19 @@ app.use(rateLimit({
 app.use(express.json({ limit: '1mb' }));
 app.use(pinoHttp({ logger }));
 
-// built-in health (بدون routes files)
-app.get('/health', (req, res) => {
+// health on both paths (to detect prefix issues)
+app.get(['/health', '/api/health'], (req, res) => {
   res.json({ app: config.app?.name || 'medcore', status: 'ok' });
 });
 
-// auth only
+// app-level ping on both paths (no dependency on auth router)
+app.get(['/auth/_ping', '/api/auth/_ping'], (req, res) => {
+  res.json({ ok: true, mounted: true });
+});
+
+// mount auth router on both paths (temporary)
 app.use('/auth', authRoutes);
+app.use('/api/auth', authRoutes);
 
 // fallback
 app.use((req, res) => res.status(404).json({ message: 'Not Found', path: req.originalUrl }));
